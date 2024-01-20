@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  web:
+    image: python:3.8
+    command: bash -c "pip install flask gunicorn && cd /app/ && gunicorn -b 0.0.0.0:5000 -w 4 torque_calc:app --pythonpath /app"
+    volumes:
+      - ./torque_calc:/app
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_APP: "torque_calc"
+      FLASK_RUN_HOST: "0.0.0.0"
+      FLASK_RUN_PORT: 5000
+
