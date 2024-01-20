@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fastener Torque Values</title>
+
+    <style>
+        table {
+            width: 100%;
+            text-align: center;
+        }
+
+        th,
+        td {
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Fastener Torque Values</h1>
+        <p>Based on NASA/TM—2017-219475 - Installation Torque Tables for Noncritical Applications</p>
+        <p><a href="https://ntrs.nasa.gov/api/citations/20170003491/downloads/20170003491.pdf" target="_blank">Download
+                the NASA document</a></p>
+    </header>
+
+    <label for="material">Select Material:</label>
+    <select id="material" onchange="filterTable()">
+        <option value="all">All Materials</option>
+        {% for material in materials %}
+        <option value="{{ material }}" {% if material=='Aluminum 6061-T6' %}selected{% endif %}>{{ material }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="fastener">Select Fastener Size:</label>
+    <select id="fastener" onchange="filterTable()">
+        <option value="all">All Fasteners</option>
+        {% for fastener in fasteners %}
+        <option value="M{{ fastener }}">{{ "M" ~ fastener }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="engagement">Select Engagement [mm]:</label>
+    <select id="engagement" onchange="filterTable()">
+        <option value="all">All Engagements</option>
+        {% for engagement in engagements %}
+        <option value="{{ engagement }}">{{ engagement }}</option>
+        {% endfor %}
+    </select>
+
+    <table border="1" id="torqueTable">
+        <tr>
+            <th>Material</th>
+            <th>Engagement [mm]</th>
+            <th>Fastener [Mx]</th>
+            <th>Pullout Load [N]</th>
+            <th>Assembly Torque [Nm]</th>
+            <th>100% Torque [Nm]</th>
+            <th>Bolt Clamp Force [N]</th> <!-- New column -->
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td>{{ row['Material'] }}</td>
+            <td>{{ row['Engagement [mm]'] }}</td>
+            <td>M{{ row['Fastener [Mx]'] }}</td> <!-- Concatenate "M" with the value -->
+            <td>{{ row['Pullout Load [N]'] }}</td>
+            <td>{{ row['Assembly Torque [Nm]'] }}</td>
+            <td>{{ row['100% Torque [Nm]'] }}</td>
+            <td>{{ ((row['Assembly Torque [Nm]']|float * 1000) / (row['Fastener [Mx]']|float) / 0.2)|round|int }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <script>
+        function calculateBoltClampForce(assemblyTorque, fastener) {
+            return (assemblyTorque * 1000) / fastener / 0.2;
+        }
+
+        function filterTable() {
+            var material = document.getElementById("material").value;
+            var fastener = document.getElementById("fastener").value;
+            var engagement = document.getElementById("engagement").value;
+            var table = document.getElementById("torqueTable");
+            var rows = table.getElementsByTagName("tr");
+
+            for (var i = 1; i < rows.length; i++) {
+                var currentMaterial = rows[i].getElementsByTagName("td")[0].textContent;
+                var currentFastener = rows[i].getElementsByTagName("td")[2].textContent;
+                var currentEngagement = rows[i].getElementsByTagName("td")[1].textContent;
+
+                var materialMatch = material === "all" || currentMaterial === material;
+                var fastenerMatch = fastener === "all" || currentFastener === fastener;
+                var engagementMatch = engagement === "all" || currentEngagement === engagement;
+
+                if (materialMatch && fastenerMatch && engagementMatch) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
